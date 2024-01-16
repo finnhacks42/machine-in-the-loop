@@ -1,0 +1,8 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form, render_field, render_form_row %}
+
+{% block content %}
+    <h3>Calculating Wordclouds (TF-IDF)...</h3>
+    <div class="loader"></div>
+    <script> window.location.replace('/wordclouds'); </script>
+{% endblock %}

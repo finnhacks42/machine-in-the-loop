@@ -1,0 +1,75 @@
+{
+    "models": [
+        {
+          "model": "BertClassifier",
+          "module": "bert_classifier",
+          "learning_rate": 2e-5,
+          "batch_size": 8,
+          "pred_size": 8,
+          "use_gpu": true,
+          "patience": 2,
+          "weighted_examples": true,
+          "measurement": "f1",
+          "average": "macro",
+          "bert_model": "bert-base-uncased"
+        },
+        {
+          "model": "BertClassifier",
+          "module": "bert_classifier_input",
+          "learning_rate": 2e-5,
+          "batch_size": 8,
+          "pred_size": 8,
+          "use_gpu": true,
+          "patience": 2,
+          "weighted_examples": true,
+          "measurement": "f1",
+          "average": "macro",
+          "bert_model": "bert-base-uncased",
+          "n_features": 2
+        },
+        {
+          "model": "BertClassifier",
+          "module": "bert_classifier_input",
+          "learning_rate": 2e-5,
+          "batch_size": 8,
+          "pred_size": 8,
+          "use_gpu": true,
+          "patience": 2,
+          "weighted_examples": true,
+          "measurement": "f1",
+          "average": "macro",
+          "bert_model": "bert-base-uncased",
+          "n_features": 7
+        },
+        {
+          "model": "BertClassifier",
+          "module": "bert_classifier_input",
+          "learning_rate": 2e-5,
+          "batch_size": 8,
+          "pred_size": 8,
+          "use_gpu": true,
+          "patience": 2,
+          "weighted_examples": true,
+          "measurement": "f1",
+          "average": "macro",
+          "bert_model": "bert-base-uncased",
+          "n_features": 3
+        },
+        {
+          "model": "BertClassifier",
+          "module": "bert_classifier_input",
+          "learning_rate": 2e-5,
+          "batch_size": 8,
+          "pred_size": 8,
+          "use_gpu": true,
+          "patience": 2,
+          "weighted_examples": true,
+          "measurement": "f1",
+          "average": "macro",
+          "bert_model": "bert-base-uncased",
+          "n_features": 4
+        }
+
+    ]
+}
+

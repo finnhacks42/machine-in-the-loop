@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/form.html' import render_form, render_field, render_form_row %}
+
+
+{% block content %}
+ <body>
+        <h3>Editing Phrase</h3>
+        <p>{{ phrase.text }}</p>
+        <form action="", method="POST", enctype="multipart/form-data">
+            {{ form_edit_phrase.csrf_token }}
+            {{ render_form(form_edit_phrase) }}
+        </form>
+    </body>
+
+
+
+{% endblock %}

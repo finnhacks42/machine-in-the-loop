@@ -1,0 +1,408 @@
+entity: "Tweet", arguments: ["tweetId"::ArgumentType.UniqueString];
+entity: "Argument", arguments: ["argumentId"::ArgumentType.UniqueString];
+entity: "Narrative", arguments: ["narrativeId"::ArgumentType.UniqueString];
+entity: "Role", arguments: ["roleId"::ArgumentType.UniqueString];
+entity: "Frame", arguments: ["frameId"::ArgumentType.UniqueString];
+entity: "Boolean", arguments: ["booleanId"::ArgumentType.UniqueString];
+
+predicate: "IsTweet", arguments: [Tweet];
+
+predicate: "HasNarrative", arguments: [Tweet, Narrative];
+predicate: "HasImmiRole", arguments: [Tweet, Role];
+predicate: "HasImmiFrame", arguments: [Tweet, Frame];
+
+predicate: "HasFramePolitical", arguments: [Tweet, Boolean];
+predicate: "HasFramePolicy", arguments: [Tweet, Boolean];
+predicate: "HasFrameCrime", arguments: [Tweet, Boolean];
+predicate: "HasFrameHealth", arguments: [Tweet, Boolean];
+predicate: "HasFrameSecurity", arguments: [Tweet, Boolean];
+predicate: "HasFrameEconomic", arguments: [Tweet, Boolean];
+
+predicate: "MentionsArgument", arguments: [Tweet, Argument];
+predicate: "IsCandidate", arguments: [Tweet, Argument];
+predicate: "IsArgument", arguments: [Argument];
+
+// Labels
+label: "NarrativeLabel", classes: 3, type: LabelType.Multiclass;
+label: "RoleLabel", classes: 4, type: LabelType.Multiclass;
+label: "FrameLabel", classes: 12, type: LabelType.Multiclass;
+label: "BooleanLabel", classes: 2, type: LabelType.Multiclass;
+
+load: "IsTweet", file: "is_tweet.txt";
+load: "MentionsArgument", file: "has_theme.txt";
+load: "IsArgument", file: "themes.txt";
+load: "ArgumentLabel", file: "themes.txt";
+load: "IsCandidate", file: "is_candidate.txt";
+
+load: "HasNarrative", file : "has_narrative.txt";
+load: "HasImmiRole", file: "has_immi_role.txt";
+load: "HasImmiFrame", file: "has_immi_frame.txt";
+
+load: "HasFramePolitical", file: "has_frame_political.txt";
+load: "HasFramePolicy", file: "has_frame_policy.txt";
+load: "HasFrameCrime", file: "has_frame_crime.txt";
+load: "HasFrameHealth", file: "has_frame_health.txt";
+load: "HasFrameSecurity", file: "has_frame_security.txt";
+load: "HasFrameEconomic", file: "has_frame_economic.txt";
+
+load: "NarrativeLabel", file: "narrative_label.txt";
+load: "RoleLabel", file: "role_label.txt";
+load: "FrameLabel", file: "immi_frame_label.txt";
+load: "BooleanLabel", file: "frame_label.txt";
+
+femodule: "mf_ft";
+feclass: "MF_ft";
+
+ruleset {
+
+  // Base Rules
+
+  rule:  IsTweet(T) => HasNarrative(T, X^NarrativeLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+
+  rule:  IsTweet(T) => HasImmiRole(T, X^RoleLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+
+  rule:  IsTweet(T)  => HasImmiFrame(T, X^FrameLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+  
+  rule:  IsTweet(T)  => HasFramePolitical(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+  
+  rule:  IsTweet(T)  => HasFramePolicy(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+  
+  rule:  IsTweet(T)  => HasFrameCrime(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+  
+  rule:  IsTweet(T)  => HasFrameHealth(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+
+  rule:  IsTweet(T)  => HasFrameSecurity(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+  
+  rule:  IsTweet(T)  => HasFrameEconomic(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+
+  // All -> Policy Frames
+
+  rule: IsTweet(T) & HasImmiFrame(T, F^FrameLabel?) => HasFramePolitical(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("immi_frame_1hot")
+  ];
+  
+  rule: IsTweet(T) & HasImmiFrame(T, F^FrameLabel?) => HasFramePolicy(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("immi_frame_1hot")
+  ];
+   
+  rule: IsTweet(T) & HasImmiFrame(T, F^FrameLabel?) => HasFrameCrime(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("immi_frame_1hot")
+  ];
+  
+  rule: IsTweet(T) & HasImmiFrame(T, F^FrameLabel?) => HasFrameHealth(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("immi_frame_1hot")
+  ];
+  
+  rule: IsTweet(T) & HasImmiFrame(T, F^FrameLabel?) => HasFrameSecurity(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("immi_frame_1hot")
+  ];
+  
+  rule: IsTweet(T) & HasImmiFrame(T, F^FrameLabel?) => HasFrameEconomic(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("immi_frame_1hot")
+  ];
+
+  // Theme -> Dimension
+
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasNarrative(T, X^NarrativeLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+  
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasImmiRole(T, X^RoleLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasImmiFrame(T, X^FrameLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+  
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasFramePolitical(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+  
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasFramePolicy(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+  
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasFrameCrime(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasFrameHealth(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+  
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasFrameSecurity(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasFrameEconomic(T, X^BooleanLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+
+  // Dimensions -> Theme
+  
+  rule: IsTweet(T) & IsCandidate(T, "ProImmiAccademicDiscussions") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "ProImmiAccademicDiscussions")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+  
+  rule: IsTweet(T) & IsCandidate(T, "JustifiedDetainmentEnforce") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "JustifiedDetainmentEnforce")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+  
+  rule: IsTweet(T) & IsCandidate(T, "EconomicMigrantsNotAsylumSeekers") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "EconomicMigrantsNotAsylumSeekers")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "SituationCountryOfOrigin") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "SituationCountryOfOrigin")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "RoleOfWesternCountries") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "RoleOfWesternCountries")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "TrumpImmiPolicy") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "TrumpImmiPolicy")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "DemocratImmiPolicyBad") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "DemocratImmiPolicyBad")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "ImmigrantCrime") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "ImmigrantCrime")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+  
+  rule: IsTweet(T) & IsCandidate(T, "ImmigrantInvasion") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "ImmigrantInvasion")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "DetainingChildren") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "DetainingChildren")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "UKAntiImmiPolicy") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "UKAntiImmiPolicy")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "UKProImmiPolicy") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "UKProImmiPolicy")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+  
+  rule: IsTweet(T) & IsCandidate(T, "FinancialCostOfImmigration") & HasNarrative(T, N) & HasImmiRole(T, R) & HasImmiFrame(T, F) & HasFramePolitical(T, A) & HasFramePolicy(T, B) & HasFrameCrime(T, C) & HasFrameHealth(T, D) & HasFrameSecurity(T, E) & HasFrameEconomic(T, G) => MentionsArgument(T, "FinancialCostOfImmigration")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("narrative_1hot"),
+    vector("immi_role_1hot"),
+    vector("immi_frame_1hot"),
+    vector("frame_vect")
+  ];
+
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Victim_Global_Economy")^? => HasImmiRole(T, "Victim")^?;
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Victim_Humanitarian")^? => HasImmiRole(T, "Victim")^?;
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Victim_War")^? => HasImmiRole(T, "Victim")^?;
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Victim_Discrimination")^? => HasImmiRole(T, "Victim")^?;
+  
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Hero_Cultural_Diversity")^? => HasImmiRole(T, "Hero")^?;
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Hero_Integration")^? => HasImmiRole(T, "Hero")^?;
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Hero_Worker")^? => HasImmiRole(T, "Hero")^?;
+
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Threat_Jobs")^? => HasImmiRole(T, "Threat")^?;
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Threat_Public_Order")^? => HasImmiRole(T, "Threat")^?;
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Threat_Fiscal")^? => HasImmiRole(T, "Threat")^?;
+  hardconstr: IsTweet(T) & HasImmiFrame(T, "Threat_National_Cohesion")^? => HasImmiRole(T, "Threat")^?;
+
+  hardconstr: IsTweet(T) & IsCandidate(T, A) & IsCandidate(T, B) & (A != B) & MentionsArgument(T, A)^? => ~MentionsArgument(T, B)^?;
+
+} groupby: IsTweet.1;

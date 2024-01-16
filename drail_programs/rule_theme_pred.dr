@@ -1,0 +1,84 @@
+// Entities
+entity: "Tweet", arguments: ["tweetId"::ArgumentType.UniqueString];
+entity: "Entity", arguments: ["entityId"::ArgumentType.UniqueString];
+entity: "MoralFoundation", arguments: ["mfId"::ArgumentType.UniqueString];
+entity: "Role", arguments: ["roleId"::ArgumentType.UniqueString];
+entity: "Sentiment", arguments: ["sentimentId"::ArgumentType.UniqueString];
+entity: "Morality", arguments: ["moralityId"::ArgumentType.UniqueString];
+entity: "Stance", arguments: ["stanceId"::ArgumentType.UniqueString];
+entity: "Argument", arguments: ["argumentId"::ArgumentType.UniqueString];
+
+// Relations
+predicate: "IsTweet", arguments: [Tweet];
+predicate: "HasEntity", arguments: [Tweet, Entity];
+predicate: "HasMoralFoundation", arguments: [Tweet, MoralFoundation];
+predicate: "HasMorality", arguments: [Tweet, Morality];
+predicate: "HasRole", arguments: [Tweet, Entity, Role];
+predicate: "HasSentiment", arguments: [Tweet, Entity, Sentiment];
+predicate: "HasStance", arguments: [Tweet, Stance];
+predicate: "MentionsArgument", arguments: [Tweet, Argument];
+predicate: "IsArgument", arguments: [Argument];
+
+// Labels
+label: "ArgumentLabel", classes: 19, type: LabelType.Multiclass;
+
+// Observed stuff
+load: "IsTweet", file: "is_tweet.txt";
+load: "HasEntity", file: "has_entity.txt";
+// Previous predictions
+load: "HasStance", file: "has_stance.txt";
+load: "HasMoralFoundation", file: "has_mf.txt";
+load: "HasMorality", file: "has_morality.txt";
+load: "HasRole", file: "has_role.txt";
+load: "HasSentiment", file: "has_sentiment.txt";
+// New predictions
+load: "MentionsArgument", file: "has_theme.txt";
+load: "IsArgument", file: "themes.txt";
+load: "ArgumentLabel", file: "themes.txt";
+
+// Feature classes
+femodule: "mf_ft";
+feclass: "MF_ft";
+
+ruleset {
+  rule: IsTweet(T) => MentionsArgument(T, A^ArgumentLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & HasMorality(T, M) => MentionsArgument(T, A^ArgumentLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("morality_1hot")
+  ];
+
+  rule: IsTweet(T) & HasMoralFoundation(T, M) => MentionsArgument(T, A^ArgumentLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("mf_1hot")
+  ];
+
+  rule: IsTweet(T) & HasStance(T, S) => MentionsArgument(T, A^ArgumentLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("stance_1hot")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) => MentionsArgument(T, A^ArgumentLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+} groupby: IsTweet.1;

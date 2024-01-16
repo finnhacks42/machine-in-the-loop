@@ -1,0 +1,73 @@
+{% from 'bootstrap/nav.html' import render_nav_item %}
+{% from 'bootstrap/utils.html' import render_messages %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Concept Models Demo</title>
+    <link rel="icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.25/css/dataTables.bootstrap5.css">
+    {{ bootstrap.load_css() }}
+    <style>
+        pre {
+            background: #ddd;
+            padding: 10px;
+        }
+        h2 {
+            margin-top: 20px;
+        }
+        footer {
+            margin: 20px;
+        }
+		.loader {
+		  border: 16px solid #f3f3f3; /* Light grey */
+		  border-top: 16px solid #3498db; /* Blue */
+		  border-radius: 50%;
+		  width: 120px;
+		  height: 120px;
+		  animation: spin 2s linear infinite;
+		}
+
+		@keyframes spin {
+		  0% { transform: rotate(0deg); }
+		  100% { transform: rotate(360deg); }
+		}
+	</style>
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
+                aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+            <ul class="navbar-nav mr-auto">
+                {{ render_nav_item('index', 'Home', use_li=True) }}
+                {{ render_nav_item('data', 'Data', use_li=True) }}
+                {{ render_nav_item('themes', 'Themes', use_li=True) }}
+                {{ render_nav_item('coverage', 'Coverage', use_li=True) }}
+            </ul>
+        </div>
+    </nav>
+    
+    <main class="container">
+        {{ render_messages(container=False, dismissible=True) }}
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="text-center">
+        {% block footer %}
+            <small> &copy; <script>document.write(new Date().getFullYear())</script> <a href="" title="">PurdueNLP</a>
+            </small>
+        {% endblock %}
+    </footer>
+
+    {{ bootstrap.load_js() }}
+    <script type="text/javascript" charset="utf8" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.js"></script>
+    <script type="text/javascript" charset="utf8" src="https://cdn.datatables.net/1.10.25/js/dataTables.bootstrap5.js"></script>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

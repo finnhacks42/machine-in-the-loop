@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/table.html' import render_table %}
+{% from 'bootstrap/form.html' import render_form, render_field, render_form_row %}
+
+{% block content %}
+    <body>
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h5>Coverage</h5>
+                    <img src="{{ url_for('static', filename=pie_plot_img )}}" alt="coverage_pieplot"/>
+               </div>
+               <div class="col">
+                   <h5>Theme Distribution</h5>
+                    <img src="{{ url_for('static', filename=tsne_img )}}" alt="tsne"/>
+                    <img src="{{ url_for('static', filename=bar_plot_img )}}" alt="distribution_barplot"/>
+               </div>
+           </div>
+        </div>
+
+   </body>
+
+{% endblock %}

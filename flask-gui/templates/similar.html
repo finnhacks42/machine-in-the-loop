@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/table.html' import render_table %}
+{% from 'bootstrap/form.html' import render_form, render_field, render_form_row %}
+{% from 'bootstrap/pagination.html' import render_pager, render_pagination %}
+
+{% block content %}
+    <body>
+        <h4>Showing tweets similar to:</h4>
+        {% for tw in tweets %}
+            <p>{{ tw.text }}</p>
+            <br>
+        {% endfor %}
+
+        {% if not_empty %}
+        <form action="", method="POST", enctype="multipart/form-data", id="twtable">
+        <table id="data" class="table table-striped">
+        <thead>
+        <tr>
+            {% for column in columns %}
+                <th>{{ column }}</th>
+            {% endfor %}
+            <th>select</th>
+        </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+                <tr>
+                {% for column in columns %}
+                    <td>{{ row|attr(column) }}</td>
+                {% endfor %}
+                <td>
+                <input type="checkbox" name="checkbox"
+                    value={{ row .id }}>
+                </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+
+        <br>
+        <button type="submit" class="btn btn-success" name="mark-as-good-button" value="Clicked">
+            Mark as Good
+        </button>
+        <button type="submit" class="btn btn-danger" name="mark-as-bad-button" value="Clicked">
+            Mark as Bad
+        </button>
+        <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#assignThemeModal", onclick="assignThemeButton();">
+            Assign to Theme
+        </button>
+        <button type="submit" class="btn btn-primary" name="explore-similar-button" value="Clicked">
+            Explore Similar
+        </button>
+
+		{% if csrf_token %}
+        	<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+ 		{% endif %}
+        </form>
+
+        <!-- Modal -->
+        <div class="modal fade" id="assignThemeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="assignThemeModalLabel">+ New Theme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form action="", method="POST", enctype="multipart/form-data", id="modalform">
+                    {{ render_field(form.theme) }}
+                    <p><b>OR</b></p>
+                    {{ render_field(form.name) }}
+                    <input type="hidden" id="tweetids" name="tweetids">
+		            {% if csrf_token %}
+        	            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+ 		            {% endif %}
+                </form>
+                <button type="button" class="btn btn-primary" onclick="submitModalButton();">
+                    Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        {% endif %}
+
+    {% block scripts %}
+    <script type="text/javascript">
+        function assignThemeButton() {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            var str = "";
+            for (var checkbox of checkboxes) {
+                str += checkbox.value + " ";
+            }
+            document.getElementById('tweetids').value = str;
+        }
+
+        function submitModalButton() {
+            var str = document.getElementById('tweetids').value;
+            $('#modalform').submit();
+        }
+
+    </script>
+    {% endblock %}
+    </body>
+
+
+{% endblock %}

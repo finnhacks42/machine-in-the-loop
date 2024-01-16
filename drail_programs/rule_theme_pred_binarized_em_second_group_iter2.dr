@@ -1,0 +1,399 @@
+entity: "Tweet", arguments: ["tweetId"::ArgumentType.UniqueString];
+entity: "Entity", arguments: ["entityId"::ArgumentType.UniqueString];
+entity: "MoralFoundation", arguments: ["mfId"::ArgumentType.UniqueString];
+entity: "Role", arguments: ["roleId"::ArgumentType.UniqueString];
+entity: "Sentiment", arguments: ["sentimentId"::ArgumentType.UniqueString];
+entity: "Morality", arguments: ["moralityId"::ArgumentType.UniqueString];
+entity: "Stance", arguments: ["stanceId"::ArgumentType.UniqueString];
+entity: "Argument", arguments: ["argumentId"::ArgumentType.UniqueString];
+
+predicate: "IsTweet", arguments: [Tweet];
+predicate: "HasEntity", arguments: [Tweet, Entity];
+predicate: "HasMoralFoundation", arguments: [Tweet, MoralFoundation];
+predicate: "HasMorality", arguments: [Tweet, Morality];
+predicate: "HasRole", arguments: [Tweet, Entity, Role];
+predicate: "HasSentiment", arguments: [Tweet, Entity, Sentiment];
+predicate: "HasStance", arguments: [Tweet, Stance];
+predicate: "MentionsArgument", arguments: [Tweet, Argument];
+predicate: "IsCandidate", arguments: [Tweet, Argument];
+predicate: "IsArgument", arguments: [Argument];
+
+// Labels
+label: "RoleLabel", classes: 2, type: LabelType.Multiclass;
+label: "SentimentLabel", classes: 2, type: LabelType.Multiclass;
+label: "StanceLabel", classes: 3, type: LabelType.Multiclass;
+label: "MoralFoundationLabel", classes: 7, type: LabelType.Multiclass;
+label: "MoralityLabel", classes: 2, type: LabelType.Multiclass;
+
+load: "IsTweet", file: "is_tweet.txt";
+load: "HasEntity", file: "has_entity.txt";
+load: "HasStance", file: "has_stance.txt";
+load: "HasMoralFoundation", file: "has_mf.txt";
+load: "HasMorality", file: "has_morality.txt";
+load: "HasRole", file: "has_role.txt";
+load: "HasSentiment", file: "has_sentiment.txt";
+load: "MentionsArgument", file: "has_theme.txt";
+load: "IsArgument", file: "themes.txt";
+load: "ArgumentLabel", file: "themes.txt";
+load: "IsCandidate", file: "is_candidate.txt";
+
+load: "RoleLabel", file: "role_label.txt";
+load: "MoralityLabel", file: "morality_label.txt";
+load: "MoralFoundationLabel", file: "mf_label.txt";
+load: "SentimentLabel", file: "sentiment_label.txt";
+load: "StanceLabel", file: "stance_label.txt";
+
+femodule: "mf_ft";
+feclass: "MF_ft";
+
+ruleset {
+
+  rule:  IsTweet(T) => HasMoralFoundation(T, X^MoralFoundationLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+
+  rule:  IsTweet(T) => HasMorality(T, X^MoralityLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+
+  rule:  IsTweet(T)  => HasStance(T, X^StanceLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert")
+  ];
+
+  rule:  IsTweet(T) & HasEntity(T, E) => HasRole(T, E, X^RoleLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert")
+  ];
+
+  rule:  IsTweet(T) & HasEntity(T, E) => HasSentiment(T, E, X^SentimentLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert")
+  ];
+
+  rule:  IsTweet(T) &  HasEntity(T, E) & HasRole(T, E, R^RoleLabel?) & HasSentiment(T, E, S^SentimentLabel?) => HasMoralFoundation(T, X^MoralFoundationLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule:  IsTweet(T) &  HasEntity(T, E) & HasRole(T, E, R^RoleLabel?) & HasSentiment(T, E, S^SentimentLabel?) => HasStance(T, X^StanceLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule: IsTweet(T) &  HasStance(T, Y^StanceLabel?) => HasMoralFoundation(T, X^MoralFoundationLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("stance_1hot")
+  ];
+
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasMoralFoundation(T, X^MoralFoundationLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+
+  rule: IsTweet(T) & IsArgument(A) & MentionsArgument(T, A) => HasStance(T, X^StanceLabel?),
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_bert"),
+    vector("arg_1hot")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "VaxLessensSymptoms") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "VaxLessensSymptoms")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "ReasonsForUSLaggingOnVaccines") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "ReasonsForUSLaggingOnVaccines")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "VaxDistributionIssueDueToLocalPolicy") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "VaxDistributionIssueDueToLocalPolicy")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "VaxAvailabilityInfo") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "VaxAvailabilityInfo")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "#IGotMyVaccine") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "#IGotMyVaccine")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "VaxDoesMoreHarmThanGood") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "VaxDoesMoreHarmThanGood")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+
+  rule: IsTweet(T) & IsCandidate(T, "FDAapproval") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "FDAapproval")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "PostVaxSymptoms") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "PostVaxSymptoms")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "VaxDistributionIssues") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "VaxDistributionIssues")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+  
+  rule: IsTweet(T) & IsCandidate(T, "VaxCapitalism") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "VaxCapitalism")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "VaxInequality") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "VaxInequality")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & IsCandidate(T, "VaxSafety") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "VaxSafety")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+  
+  rule: IsTweet(T) & IsCandidate(T, "CovidNotOver") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "CovidNotOver")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+  
+  rule: IsTweet(T) & IsCandidate(T, "VaxPersonalChoice") & HasMorality(T, M) & HasMoralFoundation(T, F) & HasStance(T, S) => MentionsArgument(T, "VaxPersonalChoice")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    vector("stance_1hot"),
+    vector("mf_1hot"),
+    vector("morality_1hot"),
+    input("tweet_bert")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "VaxLessensSymptoms") => MentionsArgument(T, "VaxLessensSymptoms")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "ReasonsForUSLaggingOnVaccines") => MentionsArgument(T, "ReasonsForUSLaggingOnVaccines")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "VaxDistributionIssueDueToLocalPolicy") => MentionsArgument(T, "VaxDistributionIssueDueToLocalPolicy")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "VaxAvailabilityInfo") => MentionsArgument(T, "VaxAvailabilityInfo")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "#IGotMyVaccine") => MentionsArgument(T, "#IGotMyVaccine")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "VaxDoesMoreHarmThanGood") => MentionsArgument(T, "VaxDoesMoreHarmThanGood")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "FDAapproval") => MentionsArgument(T, "FDAapproval")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "PostVaxSymptoms") => MentionsArgument(T, "PostVaxSymptoms")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+  
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "VaxDistributionIssues") => MentionsArgument(T, "VaxDistributionIssues")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "VaxCapitalism") => MentionsArgument(T, "VaxCapitalism")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+  
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "VaxInequality") => MentionsArgument(T, "VaxInequality")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+  
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "VaxSafety") => MentionsArgument(T, "VaxSafety")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+  
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "CovidNotOver") => MentionsArgument(T, "CovidNotOver")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+  
+  rule: IsTweet(T) & HasEntity(T, E) & HasRole(T, E, R) & HasSentiment(T, E, S) & IsCandidate(T, "VaxPersonalChoice") => MentionsArgument(T, "VaxPersonalChoice")^?,
+  lambda: 1.0,
+  network: "config.json",
+  fefunctions: [
+    input("tweet_entity_bert"),
+    vector("role_1hot"),
+    vector("sentiment_1hot")
+  ];
+
+  hardconstr:  IsTweet(T) & HasMorality(T, "non-moral")^? => HasMoralFoundation(T, "none")^?;
+  hardconstr:  IsTweet(T) & HasMorality(T, "moral")^? => ~HasMoralFoundation(T, "none")^?;
+  hardconstr: IsTweet(T) & IsCandidate(T, A) & IsCandidate(T, B) & (A != B) & MentionsArgument(T, A)^? => ~MentionsArgument(T, B)^?;
+
+} groupby: IsTweet.1;

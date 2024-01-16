@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/table.html' import render_table %}
+{% from 'bootstrap/form.html' import render_form, render_field, render_form_row %}
+
+{% block content %}
+    <body>
+        <form action="", method="POST", enctype="multipart/form-data">
+            {{ form_explore.csrf_token }}
+            {{ render_field(form_explore.theme) }}
+            {{ render_field(form_explore.visualize, button_style='primary') }}
+            <button type="button" data-toggle="modal" data-target="#editThemeModal" class="btn btn-secondary" onclick="editThemeButton();">
+                Edit
+            </button>
+            <button type="button" data-toggle="modal" data-target="#addPhraseModal" class="btn btn-info" onclick="editThemeButton();">
+                Add Phrase
+            </button>
+            {{ render_field(form_explore.delete, button_style='danger') }}
+
+        </form>
+
+        <!-- Button trigger modal -->
+        <br>
+        <button type="button" class="btn btn-success" data-toggle="modal" data-target="#newThemeModal">
+            + New Theme
+        </button>
+
+        <!-- Modal -->
+        <div class="modal fade" id="newThemeModal" tabindex="-1" role="dialog" aria-labelledby="newThemeModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="newThemeModalLabel">+ New Theme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+              <form action="" method="POST" enctype="multipart/form-data">
+                {{ form_new_code.csrf_token }}
+                {{ render_field(form_new_code.name) }}
+                <input type="hidden" name="new_code" value="new_code">
+                {{ render_field(form_new_code.submit) }}
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="editThemeModal" tabindex="-1" role="dialog" aria-labelledby="editThemeModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="editThemeModalLabel">Edit Theme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+              <form action="" method="POST" enctype="multipart/form-data">
+                {{ form_new_code.csrf_token }}
+                {{ render_field(form_new_code.name) }}
+                <input type="hidden" name="edit_code" value="edit_code">
+                <input type="hidden" id="theme_name_f1" name="theme_name_f1">
+                {{ render_field(form_new_code.submit) }}
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="addPhraseModal" tabindex="-1" role="dialog" aria-labelledby="addPhraseModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="addPhraseModalLabel">Add Phrase</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+              <form action="" method="POST" enctype="multipart/form-data">
+                {{ form_new_phrase.csrf_token }}
+                {{ render_field(form_new_phrase.text) }}
+                {{ render_field(form_new_phrase.narrative) }}
+                {{ render_field(form_new_phrase.immi_role) }}
+                {{ render_field(form_new_phrase.immi_frame) }}
+                {{ render_field(form_new_phrase.goodness) }}
+                <p><b>Select all the frames that apply:</b></p>
+                <p>{{ form_new_phrase.frame_political }} Political Factors and Implications</p>
+                <p>{{ form_new_phrase.frame_policy }} Politicy Prescription and Evaluation</p>
+                <p>{{ form_new_phrase.frame_crime }} Crime and Punishment</p>
+                <p>{{ form_new_phrase.frame_health }} Health and Safety</p>
+                <p>{{ form_new_phrase.frame_security }} Security and Defense</p>
+                <p>{{ form_new_phrase.frame_economic }} Economic</p>
+
+                <input type="hidden" id="theme_name_f2" name="theme_name_f2">
+                {{ render_field(form_new_phrase.submit) }}
+              </form>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <br><br><br>
+        {% if theme %}
+        <div class="container">
+            <div class="row">
+                <div class="col">
+                    <h5>Good Phrases</h5>
+                    {{render_table(good_phrases, titles=[('text', 'Phrase'), ('narrative', 'Narrative'),
+                                  ('immi_role', 'Immi. Role'), ('immi_frame', 'Immi. Frame'),
+                                  ('frame_political', 'Political'), ('frame_policy', 'Policy'),
+                                  ('frame_crime', 'Crime'), ('frame_health', 'Health'),
+                                  ('frame_security', 'Security'), ('frame_economic', 'Economic')], show_actions=True,
+                                   delete_url=url_for('delete_phrase', phrase_id=':id'),
+                                   edit_url=url_for('edit_phrase', phrase_id=':id')) }}
+                </div>
+                <div class="col">
+                    <h5>Bad Phrases</h5>
+                     {{render_table(bad_phrases, titles=[('text', 'Phrase'), ('narrative', 'Narrative'),
+                                   ('immi_role', 'Immi. Role'), ('immi_frame', 'Immi. Frame'),
+                                     ('immi_role', 'Immi. Role'), ('immi_frame', 'Immi. Frame'),
+                                  ('frame_political', 'Political'), ('frame_policy', 'Policy'),
+                                  ('frame_crime', 'Crime'), ('frame_health', 'Health'),
+                                  ('frame_security', 'Security'), ('frame_economic', 'Economic')], show_actions=True,
+
+                                   delete_url=url_for('delete_phrase', phrase_id=':id'),
+                                   edit_url=url_for('edit_phrase', phrase_id=':id')) }}
+
+                </div>
+           </div>
+           <div class="row">
+               <div class="col">
+                   <h5>Immigrant Role</h5>
+                    {% if exists_file %}
+                   <img src="{{ url_for('static', filename=role_img )}}" alt={{ theme }} />
+                    {% endif %}
+               </div>
+               <div class="col">
+                   <h5>Narrative Distribution</h5>
+                   {% if exists_file %}
+                   <img src="{{ url_for('static', filename=narrative_img )}}" alt={{ theme }} />
+                    {% endif %}
+               </div>
+           </div>
+           <div class="row">
+                <div class="col">
+                    <h5>Policy Frames Distribution</h5>
+                   {% if exists_file %}
+                   <img src="{{ url_for('static', filename=policy_frame_img )}}" alt={{ theme }} />
+                    {% endif %}
+               </div>
+               <div class="col">
+                   <h5>Immigration Frames Distribution</h5>
+                   {% if exists_file %}
+                   <img src="{{ url_for('static', filename=immi_frame_img )}}" alt={{ theme }} />
+                    {% endif %}
+               </div>
+           </div>
+            <div class="row">
+               <div class="col">
+                   <h5>Word Cloud</h5>
+                    {% if exists_file %}
+                   <img src="{{ url_for('static', filename=word_cloud_img )}}" alt={{ theme }} />
+                    {% endif %}
+               </div>
+           </div>
+
+
+
+        </div>
+        {% endif %}
+        {% block scripts %}
+
+        <script type="text/javascript">
+        function editThemeButton() {
+            var theme = document.getElementById('theme').value;
+            document.getElementById('theme_name_f1').value = theme;
+            document.getElementById('theme_name_f2').value = theme;
+        }
+
+        </script>
+        {% endblock %}
+
+    </body>
+    
+{% endblock %}

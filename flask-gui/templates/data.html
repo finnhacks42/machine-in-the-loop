@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% from 'bootstrap/table.html' import render_table %}
+{% from 'bootstrap/form.html' import render_form, render_field, render_form_row %}
+{% from 'bootstrap/pagination.html' import render_pager, render_pagination %}
+
+{% block content %}
+<body>
+<div class="container">
+    <div class="row">
+        <div class="col">
+            <h4>Query by theme</h4>
+            <form action="", method="POST", enctype="multipart/form-data">
+                {{ form.csrf_token }}
+                {{ render_form_row([form.theme]) }}
+                {{ render_field(form.close, button_style='success') }}
+                {{ render_field(form.distant, button_style='danger') }}
+            </form>
+        </div>
+        <div class="col-md-auto">
+            <center><h2>OR</h2></center>
+        </div>
+        <div class="col">
+            <h4>Write a text query</h4>
+            <form action="", method="POST", enctype="multipart/form-data">
+                {{ form_search.csrf_token }}
+                {{ render_form_row([form_search.query]) }}
+                {{ render_field(form_search.submit) }}
+            </form>
+        </div>
+    </div>
+    <div class="row">
+        <br><br><br>
+        {% if not_empty %}
+        <form action="", method="POST", enctype="multipart/form-data", id="twtable">
+        <table id="data" class="table table-striped">
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Text</th>
+            <th>Distance</th>
+            <th>Theme</th>
+            <th>Select</th>
+        </tr>
+        </thead>
+        <tbody>
+
+            {% for row in rows %}
+                <tr>
+                <td>{{ row["tweet_id"] }}</td>
+                <td>{{ row["text"] }}</td>
+                <td>{{ row["distance"] }}</td>
+                <td>{{ row["theme_id"] }}</td>
+                <td>
+                <input type="checkbox" name="checkbox"
+                    value={{ row .id }}>
+                </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+        </table>
+        <div class="row">
+        <br>
+        <button type="submit" class="btn btn-success" name="mark-as-good-button" value="Clicked">
+            Mark as Good
+        </button>
+        <button type="submit" class="btn btn-danger" name="mark-as-bad-button" value="Clicked">
+            Mark as Bad
+        </button>
+        <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#assignThemeModal" onclick="assignThemeButton();">
+            Assign to Theme
+        </button>
+        <button type="submit" class="btn btn-primary" name="explore-similar-button" value="Clicked">
+            Explore Similar
+        </button>
+
+		{% if csrf_token %}
+        	<input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+ 		{% endif %}
+        </form>
+
+        <!-- Modal -->
+        <div class="modal fade" id="assignThemeModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="assignThemeModalLabel">+ New Theme</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <form action="", method="POST", enctype="multipart/form-data", id="modalform">
+                    {{ render_field(form_assign.theme) }}
+                    <p><b>OR</b></p>
+                    {{ render_field(form_assign.name) }}
+                    <input type="hidden" id="tweetids" name="tweetids">
+		            {% if csrf_token %}
+        	            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+ 		            {% endif %}
+                </form>
+                <button type="button" class="btn btn-primary" onclick="submitModalButton();">
+                    Submit
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+
+        {% endif %}
+    </div>
+    {% block scripts %}
+    <script type="text/javascript">
+
+        $(document).ready(function () {
+            $('#data').DataTable({
+                pageLength: 5,
+                lengthMenu: [5, 10, 25, 50, 100],
+                order: [[3, 'asc']]
+            });
+        });
+
+        function assignThemeButton() {
+            var checkboxes = document.querySelectorAll('input[type="checkbox"]:checked');
+            var str = "";
+            for (var checkbox of checkboxes) {
+                str += checkbox.value + " ";
+            }
+            document.getElementById('tweetids').value = str;
+        }
+
+        function submitModalButton() {
+            var str = document.getElementById('tweetids').value;
+            $('#modalform').submit();
+        }
+     </script>
+    {% endblock %}
+</body>
+
+{% endblock %}
